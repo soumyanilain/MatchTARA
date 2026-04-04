@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PositionType {
+  TA
+  RA
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
+model Professor {
+  id                String     @id @default(uuid())
+  name              String
+  email             String     @unique
+  passwordHash      String     @map("password_hash")
+  department        String
+  isVerified        Boolean    @default(false) @map("is_verified")
+  verificationToken String?    @map("verification_token")
+  tokenExpiresAt    DateTime?  @map("token_expires_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  positions Position[]
+
+  @@map("professors")
+}
+
+model Position {
+  id           String         @id @default(uuid())
+  professorId  String         @map("professor_id")
+  title        String
+  type         PositionType
+  courseNumber  String?        @map("course_number")
+  researchArea String?        @map("research_area")
+  description  String
+  requirements String
+  hoursPerWeek Int            @map("hours_per_week")
+  compensation String
+  deadline     DateTime
+  status       PositionStatus @default(OPEN)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  professor    Professor      @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([type])
+  @@index([status])
+  @@index([deadline])
+  @@map("positions")
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  positionId   String            @map("position_id")
+  studentName  String            @map("student_name")
+  studentEmail String            @map("student_email")
+  statement    String
+  resumeUrl    String            @map("resume_url")
+  status       ApplicationStatus @default(PENDING)
+  statusUpdatedAt DateTime?      @map("status_updated_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  position     Position          @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, studentEmail])
+  @@index([status])
+  @@map("applications")
+}
