@@ -1,12 +1,12 @@
-// TODO: Sprint 2 — US-8c (Single Application Detail View)
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getApplicationById, updateApplicationStatus } from '../services/api';
+import { getApplicationById, updateApplicationStatus, downloadResume } from '../services/api';
 
 const ApplicationDetailPage = () => {
   const { id } = useParams();
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     getApplicationById(id)
@@ -20,6 +20,18 @@ const ApplicationDetailPage = () => {
       await updateApplicationStatus(id, newStatus);
       setApp({ ...app, status: newStatus });
     } catch (err) { alert(err.response?.data?.error); }
+  };
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await downloadResume(id, app.studentName);
+    } catch (err) {
+      alert('Failed to download resume. Please try again.');
+      console.error(err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -46,9 +58,9 @@ const ApplicationDetailPage = () => {
         </p>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <a href={`/uploads/${app.resumeUrl}`} target="_blank" rel="noreferrer" className="btn btn-primary">
-            Download Resume
-          </a>
+          <button onClick={handleDownload} className="btn btn-primary" disabled={downloading}>
+            {downloading ? 'Downloading...' : 'Download Resume'}
+          </button>
           <select value={app.status} onChange={(e) => handleStatusChange(e.target.value)}
             className="form-select" style={{ width: 'auto' }}>
             {['PENDING', 'REVIEWED', 'ACCEPTED', 'REJECTED'].map((s) => (

@@ -51,6 +51,20 @@ export const getApplicationById = (id) => API.get(`/applications/${id}`);
 export const updateApplicationStatus = (id, status) =>
   API.patch(`/applications/${id}/status`, { status });
 
+export const downloadResume = async (applicationId, studentName) => {
+  const response = await API.get(`/applications/${applicationId}/resume`, {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `${studentName.replace(/[^a-z0-9]/gi, '_')}_resume.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 // ── Dashboard ──
 export const getMyPositions = () => API.get('/dashboard/my-positions');
 export const getRecentApplications = () => API.get('/dashboard/recent-applications');

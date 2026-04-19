@@ -1,7 +1,7 @@
 // TODO: Sprint 2 — US-8a, US-8b (View Applications List)
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getApplicationsByPosition, updateApplicationStatus } from '../services/api';
+import { getApplicationsByPosition, updateApplicationStatus, downloadResume } from '../services/api';
 
 const ApplicationsPage = () => {
   const { id } = useParams();
@@ -59,7 +59,7 @@ const ApplicationsPage = () => {
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <a href={`/uploads/${app.resumeUrl}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-primary">Resume</a>
+                <button onClick={() => downloadResume(app.id, app.studentName)} className="btn btn-sm btn-primary">Resume</button>
                 <Link to={`/applications/${app.id}`} className="btn btn-sm btn-secondary">Details</Link>
               </div>
             </div>
