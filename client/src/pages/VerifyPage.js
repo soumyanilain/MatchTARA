@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { verifyEmail } from '../services/api';
 
@@ -6,12 +6,8 @@ const VerifyPage = () => {
   const { token } = useParams();
   const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
-  const hasVerified = useRef(false);
 
   useEffect(() => {
-    if (hasVerified.current) return;
-    hasVerified.current = true;
-
     verifyEmail(token)
       .then((res) => { setStatus('success'); setMessage(res.data.message); })
       .catch((err) => { setStatus('error'); setMessage(err.response?.data?.error || 'Verification failed.'); });
