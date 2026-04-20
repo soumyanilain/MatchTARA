@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { sendApplicationNotification } = require('../utils/email');
+const { sendApplicationNotification, sendStatusUpdateEmail } = require('../utils/email');
 
 // POST /api/applications — Public, submit application
 const submitApplication = async (req, res, next) => {
@@ -135,7 +135,7 @@ const updateApplicationStatus = async (req, res, next) => {
 
     const application = await prisma.application.findUnique({
       where: { id: req.params.id },
-      include: { position: { select: { professorId: true } } },
+      include: { position: { select: { professorId: true, title: true } } },
     });
 
     if (!application) {
@@ -145,10 +145,21 @@ const updateApplicationStatus = async (req, res, next) => {
       return res.status(403).json({ error: 'Access denied.' });
     }
 
+    const oldStatus = application.status;
     const updated = await prisma.application.update({
       where: { id: req.params.id },
       data: { status, statusUpdatedAt: new Date() },
     });
+
+    // Send email notification if status actually changed (non-blocking)
+    if (oldStatus !== status) {
+      sendStatusUpdateEmail(
+        application.studentEmail,
+        application.studentName,
+        application.position.title,
+        status
+      );
+    }
 
     res.json({ message: `Application status updated to ${status}.`, application: updated });
   } catch (err) {
