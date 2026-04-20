@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/db');
 const { sendVerificationEmail } = require('../utils/email');
+const { ALLOWED_PROFESSOR_EMAILS } = require('../config/whitelist');
 
 // POST /api/auth/register
 const register = async (req, res, next) => {
@@ -12,6 +13,11 @@ const register = async (req, res, next) => {
     // Check for valid .edu domain
     if (!email.endsWith('.edu')) {
       return res.status(400).json({ error: 'Only university (.edu) email addresses are accepted.' });
+    }
+
+    // Check whitelist
+    if (!ALLOWED_PROFESSOR_EMAILS.includes(email.toLowerCase())) {
+      return res.status(403).json({ error: 'This email is not authorized to register.' });
     }
 
     // Check if account exists
@@ -83,6 +89,11 @@ const verifyEmail = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    // Check whitelist before hitting the database
+    if (!ALLOWED_PROFESSOR_EMAILS.includes(email.toLowerCase())) {
+      return res.status(403).json({ error: 'This email is not authorized to access the platform.' });
+    }
 
     const professor = await prisma.professor.findUnique({ where: { email } });
 

@@ -1,13 +1,14 @@
 .navbar {
-  background: var(--primary-dark);
-  padding: 0 20px;
-  height: 60px;
+  background: linear-gradient(135deg, #1E2761 0%, #2C3E50 100%);
+  padding: 0 24px;
+  height: 68px;
   display: flex;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .navbar-container {
@@ -20,49 +21,144 @@
 }
 
 .navbar-brand {
-  font-size: 1.4rem;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
   text-decoration: none;
-}
-.navbar-brand:hover {
-  text-decoration: none;
-  opacity: 0.9;
+  letter-spacing: -0.3px;
+  transition: transform 0.2s;
+  line-height: 1;
 }
 
+.navbar-brand:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+  color: white;
+}
+
+.navbar-logo {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #4472C4, #5B9BD5);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 2px 8px rgba(68, 114, 196, 0.4);
+}
+
+.navbar-brand-text {
+  background: linear-gradient(135deg, #FFFFFF, #CADCFC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* ── Navigation Links ── */
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .nav-link {
-  color: #BDC3C7;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
-  transition: color 0.2s;
-}
-.nav-link:hover {
-  color: white;
-  text-decoration: none;
-}
-
-.nav-professor {
-  color: #BDC3C7;
-  font-size: 0.9rem;
-}
-
-.nav-logout {
-  background: none;
-  border: 1px solid #E74C3C;
-  color: #E74C3C;
-  padding: 6px 14px;
-  border-radius: var(--radius);
-  font-size: 0.85rem;
-  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
   transition: all 0.2s;
 }
-.nav-logout:hover {
-  background: #E74C3C;
+
+.nav-link:hover {
   color: white;
+  background: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+/* ── Professor info pill ── */
+.nav-professor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 6px 14px 6px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  margin-left: 8px;
+}
+
+.nav-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4472C4, #8E44AD);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* ── Logout button ── */
+.nav-logout {
+  background: transparent;
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  color: #F5B7B1;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.nav-logout:hover {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: #E74C3C;
+  color: #F1948A;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+    gap: 8px;
+  }
+
+  .navbar-logo {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .nav-professor {
+    display: none;
+  }
+
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
 }
