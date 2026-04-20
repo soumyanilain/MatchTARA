@@ -30,6 +30,7 @@ API.interceptors.response.use(
 export const registerProfessor = (data) => API.post('/auth/register', data);
 export const loginProfessor = (data) => API.post('/auth/login', data);
 export const verifyEmail = (token) => API.get(`/auth/verify/${token}`);
+export const resendVerification = (email) => API.post('/auth/resend-verification', { email });
 export const getMe = () => API.get('/auth/me');
 
 // ── Positions ──

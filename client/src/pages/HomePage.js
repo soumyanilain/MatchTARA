@@ -44,6 +44,8 @@ const HomePage = () => {
     month: 'short', day: 'numeric', year: 'numeric',
   });
 
+  const isExpired = (deadline) => new Date(deadline) < new Date();
+
   return (
     <div>
       <h1 className="page-title">Open Positions</h1>
@@ -88,27 +90,52 @@ const HomePage = () => {
         </div>
       ) : (
         <div className="grid-2">
-          {positions.map((pos) => (
-            <div key={pos.id} className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <span className={`badge badge-${pos.type.toLowerCase()}`}>{pos.type}</span>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{pos.title}</h3>
+          {positions.map((pos) => {
+            const expired = isExpired(pos.deadline);
+            return (
+              <div
+                key={pos.id}
+                className="card"
+                style={{
+                  opacity: expired ? 0.6 : 1,
+                  background: expired ? '#F4F4F4' : 'var(--bg-card)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                  <span className={`badge badge-${pos.type.toLowerCase()}`}>{pos.type}</span>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, flex: 1 }}>{pos.title}</h3>
+                  {expired && (
+                    <span style={{
+                      fontSize: '0.7rem',
+                      background: '#E74C3C',
+                      color: 'white',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                    }}>
+                      Expired
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '4px' }}>
+                  Prof. {pos.professor?.name} &nbsp;|&nbsp; {pos.professor?.department}
+                </p>
+                <p style={{ fontSize: '0.8rem', color: expired ? 'var(--text-muted)' : 'var(--danger)', marginBottom: '8px' }}>
+                  {expired ? 'Deadline passed: ' : 'Deadline: '}{formatDate(pos.deadline)}
+                </p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '12px' }}>
+                  {pos.description?.substring(0, 120)}...
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Link to={`/positions/${pos.id}`} className="btn btn-sm btn-secondary">View Details</Link>
+                  {!expired && (
+                    <Link to={`/positions/${pos.id}/apply`} className="btn btn-sm btn-primary">Apply →</Link>
+                  )}
+                </div>
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '4px' }}>
-                Prof. {pos.professor?.name} &nbsp;|&nbsp; {pos.professor?.department}
-              </p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--danger)', marginBottom: '8px' }}>
-                Deadline: {formatDate(pos.deadline)}
-              </p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '12px' }}>
-                {pos.description?.substring(0, 120)}...
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <Link to={`/positions/${pos.id}`} className="btn btn-sm btn-secondary">View Details</Link>
-                <Link to={`/positions/${pos.id}/apply`} className="btn btn-sm btn-primary">Apply →</Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

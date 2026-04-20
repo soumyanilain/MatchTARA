@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 import PrivateRoute from './components/auth/PrivateRoute';
 
 // Pages
@@ -17,9 +18,9 @@ import ApplicationDetailPage from './pages/ApplicationDetailPage';
 
 function App() {
   return (
-    <div className="App">
+    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
-      <main className="container page">
+      <main className="container page" style={{ flex: 1 }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -37,6 +38,7 @@ function App() {
           <Route path="/applications/:id" element={<PrivateRoute><ApplicationDetailPage /></PrivateRoute>} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

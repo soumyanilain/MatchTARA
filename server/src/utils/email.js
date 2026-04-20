@@ -8,27 +8,45 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  pool: true,              // Reuse connections instead of creating new ones
+  maxConnections: 5,       // Up to 5 simultaneous sends
+  maxMessages: 100,        // Send up to 100 emails per connection before recycling
+  connectionTimeout: 10000, // 10 second timeout
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+});
+
+// Verify connection on server startup (non-blocking)
+transporter.verify((err, success) => {
+  if (err) {
+    console.error('SMTP connection error:', err.message);
+  } else {
+    console.log('SMTP ready to send emails');
+  }
 });
 
 const sendVerificationEmail = async (email, token) => {
   const verifyUrl = `${process.env.CLIENT_URL}/verify/${token}`;
-
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'MatchTARA - Verify Your Email',
       html: `
-        <h2>Welcome to MatchTARA!</h2>
-        <p>Click the link below to verify your email address:</p>
-        <a href="${verifyUrl}">${verifyUrl}</a>
-        <p>This link expires in 24 hours.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2C3E50;">Welcome to MatchTARA!</h2>
+          <p>Thank you for registering. Please verify your email by clicking the button below:</p>
+          <p style="margin: 24px 0;">
+            <a href="${verifyUrl}" style="background: #4472C4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Verify Email</a>
+          </p>
+          <p style="color: #777; font-size: 14px;">Or copy this link: ${verifyUrl}</p>
+          <p style="color: #777; font-size: 14px;">This link expires in 24 hours.</p>
+        </div>
       `,
     });
     console.log(`Verification email sent to ${email}`);
   } catch (err) {
     console.error(`Failed to send verification email to ${email}:`, err.message);
-    // Don't throw — registration should still succeed
   }
 };
 
@@ -39,9 +57,15 @@ const sendApplicationNotification = async (professorEmail, positionTitle, studen
       to: professorEmail,
       subject: `MatchTARA - New Application for ${positionTitle}`,
       html: `
-        <h2>New Application Received</h2>
-        <p><strong>${studentName}</strong> has applied for your position: <strong>${positionTitle}</strong>.</p>
-        <p>Log in to your MatchTARA dashboard to review the application.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2C3E50;">New Application Received</h2>
+          <p><strong>${studentName}</strong> has applied for your position:</p>
+          <p style="font-size: 18px; color: #4472C4; padding: 12px; background: #F4F7FB; border-radius: 6px;">${positionTitle}</p>
+          <p>Log in to your MatchTARA dashboard to review the application.</p>
+          <p style="margin-top: 24px;">
+            <a href="${process.env.CLIENT_URL}/dashboard" style="background: #4472C4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Go to Dashboard</a>
+          </p>
+        </div>
       `,
     });
     console.log(`Notification email sent to ${professorEmail}`);
@@ -50,4 +74,51 @@ const sendApplicationNotification = async (professorEmail, positionTitle, studen
   }
 };
 
-module.exports = { sendVerificationEmail, sendApplicationNotification };
+const sendStatusUpdateEmail = async (studentEmail, studentName, positionTitle, newStatus) => {
+  const statusMessages = {
+    REVIEWED: {
+      subject: 'Your application is being reviewed',
+      color: '#3498DB',
+      headline: 'Your application is being reviewed',
+      body: `The professor has started reviewing your application for <strong>${positionTitle}</strong>. We'll notify you once a decision has been made.`,
+    },
+    ACCEPTED: {
+      subject: 'Congratulations! Your application has been accepted',
+      color: '#27AE60',
+      headline: '🎉 Congratulations!',
+      body: `Great news! Your application for <strong>${positionTitle}</strong> has been <strong style="color: #27AE60;">accepted</strong>. The professor will contact you shortly with next steps.`,
+    },
+    REJECTED: {
+      subject: 'Update on your application',
+      color: '#95A5A6',
+      headline: 'Application Update',
+      body: `Thank you for your interest in <strong>${positionTitle}</strong>. Unfortunately, the professor has decided to move forward with other candidates at this time. We wish you the best in your future applications.`,
+    },
+  };
+
+  const msg = statusMessages[newStatus];
+  if (!msg) return;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: studentEmail,
+      subject: `MatchTARA - ${msg.subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: ${msg.color};">${msg.headline}</h2>
+          <p>Hello ${studentName},</p>
+          <p>${msg.body}</p>
+          <p style="margin-top: 24px; color: #777; font-size: 14px;">
+            This is an automated message from MatchTARA. Please do not reply to this email.
+          </p>
+        </div>
+      `,
+    });
+    console.log(`Status update email sent to ${studentEmail} (${newStatus})`);
+  } catch (err) {
+    console.error(`Failed to send status email to ${studentEmail}:`, err.message);
+  }
+};
+
+module.exports = { sendVerificationEmail, sendApplicationNotification, sendStatusUpdateEmail };
