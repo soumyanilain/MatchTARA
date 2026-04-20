@@ -138,4 +138,48 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, verifyEmail, login, getMe };
+// POST /api/auth/resend-verification
+const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required.' });
+    }
+
+    const professor = await prisma.professor.findUnique({ where: { email } });
+
+    // Generic success message to prevent account enumeration
+    // (don't reveal whether the email exists)
+    if (!professor) {
+      return res.json({
+        message: 'If an unverified account exists for this email, a new verification link has been sent.',
+      });
+    }
+
+    if (professor.isVerified) {
+      return res.status(400).json({
+        error: 'This account is already verified. You can log in directly.',
+      });
+    }
+
+    // Generate a new token and invalidate the old one
+    const verificationToken = uuidv4();
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.professor.update({
+      where: { id: professor.id },
+      data: { verificationToken, tokenExpiresAt },
+    });
+
+    sendVerificationEmail(email, verificationToken);
+
+    res.json({
+      message: 'A new verification link has been sent to your email. Please check your inbox.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, verifyEmail, login, getMe, resendVerification };

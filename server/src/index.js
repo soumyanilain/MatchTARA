@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const positionRoutes = require('./routes/positions');
 const applicationRoutes = require('./routes/applications');
 const dashboardRoutes = require('./routes/dashboard');
+const { startCronJobs } = require('./utils/cronJobs');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`MatchTARA server running on port ${PORT}`);
+  startCronJobs();
 });
 
 module.exports = app;
