@@ -19,6 +19,13 @@ const ApplyPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate .edu email
+    if (!form.studentEmail.toLowerCase().trim().endsWith('.edu')) {
+      setError('Please use your university (.edu) email address to apply.');
+      return;
+    }
+
     if (!file) { setError('Please upload your resume (PDF).'); return; }
 
     setLoading(true);
@@ -107,7 +114,7 @@ const ApplyPage = () => {
             marginBottom: '24px', textAlign: 'left',
           }}>
             <p style={{ fontSize: '0.9rem', color: 'var(--text)', margin: 0 }}>
-              <strong>What's next?</strong> The professor will review your application and contact you via email if they'd like to move forward. You'll also receive email updates when your application status changes.
+              <strong>What's next?</strong> A confirmation email has been sent to your inbox. The professor will review your application and contact you via email if they'd like to move forward. You'll also receive email updates when your application status changes.
             </p>
           </div>
 
@@ -151,6 +158,9 @@ const ApplyPage = () => {
               <label className="form-label">University Email *</label>
               <input type="email" className="form-input" placeholder="jdoe@university.edu"
                 value={form.studentEmail} onChange={set('studentEmail')} required />
+              <small style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                Must be a valid .edu email address
+              </small>
             </div>
           </div>
 

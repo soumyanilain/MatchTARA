@@ -1,15 +1,26 @@
 const prisma = require('../config/db');
-const { sendApplicationNotification, sendStatusUpdateEmail } = require('../utils/email');
+const {
+  sendApplicationNotification,
+  sendStatusUpdateEmail,
+  sendApplicationConfirmation,
+} = require('../utils/email');
 
 // POST /api/applications — Public, submit application
 const submitApplication = async (req, res, next) => {
   try {
     const { positionId, studentName, studentEmail, statement } = req.body;
 
+    // Validate student email is a university (.edu) email
+    if (!studentEmail || !studentEmail.toLowerCase().trim().endsWith('.edu')) {
+      return res.status(400).json({
+        error: 'Only university (.edu) email addresses can apply. Please use your student email.'
+      });
+    }
+
     // Check position exists and is open
     const position = await prisma.position.findUnique({
       where: { id: positionId },
-      include: { professor: { select: { email: true } } },
+      include: { professor: { select: { email: true, name: true } } },
     });
 
     if (!position) {
@@ -50,6 +61,9 @@ const submitApplication = async (req, res, next) => {
     // Send notification to professor (non-blocking)
     sendApplicationNotification(position.professor.email, position.title, studentName);
 
+    // Send confirmation email to the student (non-blocking)
+    sendApplicationConfirmation(studentEmail, studentName, position.title, position.professor.name);
+
     res.status(201).json({
       message: 'Application submitted successfully!',
       application: {
@@ -71,7 +85,6 @@ const getApplicationsByPosition = async (req, res, next) => {
     const { positionId } = req.params;
     const { status, sort = 'desc' } = req.query;
 
-    // Verify ownership
     const position = await prisma.position.findUnique({ where: { id: positionId } });
     if (!position) {
       return res.status(404).json({ error: 'Position not found.' });
@@ -90,7 +103,6 @@ const getApplicationsByPosition = async (req, res, next) => {
       orderBy: { createdAt: sort === 'asc' ? 'asc' : 'desc' },
     });
 
-    // Get status counts
     const counts = await prisma.application.groupBy({
       by: ['status'],
       where: { positionId },
@@ -151,7 +163,6 @@ const updateApplicationStatus = async (req, res, next) => {
       data: { status, statusUpdatedAt: new Date() },
     });
 
-    // Send email notification if status actually changed (non-blocking)
     if (oldStatus !== status) {
       sendStatusUpdateEmail(
         application.studentEmail,
