@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { sendApplicationNotification, sendStatusUpdateEmail } = require('../utils/email');
+const { sendApplicationNotification, sendStatusUpdateEmail, sendApplicationConfirmation } = require('../utils/email');
 
 // POST /api/applications — Public, submit application
 const submitApplication = async (req, res, next) => {
@@ -7,10 +7,10 @@ const submitApplication = async (req, res, next) => {
     const { positionId, studentName, studentEmail, statement } = req.body;
 
     // Check position exists and is open
-    const position = await prisma.position.findUnique({
-      where: { id: positionId },
-      include: { professor: { select: { email: true } } },
-    });
+const position = await prisma.position.findUnique({
+  where: { id: positionId },
+  include: { professor: { select: { email: true, name: true } } },
+});
 
     if (!position) {
       return res.status(404).json({ error: 'Position not found.' });
@@ -48,7 +48,10 @@ const submitApplication = async (req, res, next) => {
     });
 
     // Send notification to professor (non-blocking)
-    sendApplicationNotification(position.professor.email, position.title, studentName);
+sendApplicationNotification(position.professor.email, position.title, studentName);
+
+// Send confirmation email to the student (non-blocking)
+sendApplicationConfirmation(studentEmail, studentName, position.title, position.professor.name);
 
     res.status(201).json({
       message: 'Application submitted successfully!',
