@@ -335,12 +335,10 @@ After deploying, return to Render and update `CLIENT_URL` to your Netlify URL so
 
 Built by **Team CodeHustlers** at UNC Charlotte:
 
-- **Soumyanil Ain** — Project lead, backend authentication, deployment
-- **Pratyush Patil** — Position management features, validation
-- **Christopher Coetzer** — Application submission, resume handling
-- **Niharika Kanaparthi** — Public job board, search and filter
-- **Mohammed Ayinampudi** — Application review, status updates, bulk ops
-- **Mohammed Shaik** — Frontend styling, responsive design
+- **Soumyanil Ain** 
+- **Pratyush Patil**  
+- **Christopher Coetzer**  
+
 
 ---
 
