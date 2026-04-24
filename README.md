@@ -336,7 +336,7 @@ After deploying, return to Render and update `CLIENT_URL` to your Netlify URL so
 Built by **Team CodeHustlers** at UNC Charlotte:
 
 - **Soumyanil Ain** 
-- **Pratyush Patil**  
+- **Piyush Patil**  
 - **Christopher Coetzer**  
 
 
