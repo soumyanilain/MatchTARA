@@ -8,15 +8,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  pool: true,              // Reuse connections instead of creating new ones
-  maxConnections: 5,       // Up to 5 simultaneous sends
-  maxMessages: 100,        // Send up to 100 emails per connection before recycling
-  connectionTimeout: 10000, // 10 second timeout
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
 });
 
-// Verify connection on server startup (non-blocking)
 transporter.verify((err, success) => {
   if (err) {
     console.error('SMTP connection error:', err.message);
@@ -121,4 +120,44 @@ const sendStatusUpdateEmail = async (studentEmail, studentName, positionTitle, n
   }
 };
 
-module.exports = { sendVerificationEmail, sendApplicationNotification, sendStatusUpdateEmail };
+const sendApplicationConfirmation = async (studentEmail, studentName, positionTitle, professorName) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: studentEmail,
+      subject: `MatchTARA - Application Received for ${positionTitle}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #27AE60;">✓ Application Received!</h2>
+          <p>Hello ${studentName},</p>
+          <p>Thank you for applying. Your application has been successfully submitted for:</p>
+          <p style="font-size: 18px; color: #4472C4; padding: 12px; background: #F4F7FB; border-radius: 6px;">
+            <strong>${positionTitle}</strong>
+          </p>
+          <p>Your application is now being reviewed by <strong>${professorName}</strong>. You will receive another email notification when your application status changes.</p>
+          <div style="padding: 16px; background: #EBF5FB; border-radius: 6px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px;"><strong>What happens next?</strong></p>
+            <ul style="font-size: 14px; margin: 8px 0;">
+              <li>The professor will review your application and resume</li>
+              <li>You'll receive an email when the status changes to Reviewed, Accepted, or Rejected</li>
+              <li>If accepted, the professor will contact you directly with next steps</li>
+            </ul>
+          </div>
+          <p style="color: #777; font-size: 14px; margin-top: 24px;">
+            This is an automated confirmation from MatchTARA. Please do not reply to this email.
+          </p>
+        </div>
+      `,
+    });
+    console.log(`Confirmation email sent to ${studentEmail}`);
+  } catch (err) {
+    console.error(`Failed to send confirmation to ${studentEmail}:`, err.message);
+  }
+};
+
+module.exports = {
+  sendVerificationEmail,
+  sendApplicationNotification,
+  sendStatusUpdateEmail,
+  sendApplicationConfirmation,
+};
